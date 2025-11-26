@@ -72,6 +72,7 @@ func init() {
 			&runCmd,
 			&psCmd,
 			&logsCmd,
+			&rmCmd,
 			{
 				Name:     "health",
 				Category: "API RESOURCE",
