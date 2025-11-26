@@ -12,12 +12,16 @@ import (
 var rmCmd = cli.Command{
 	Name:      "rm",
 	Usage:     "Remove one or more instances",
-	ArgsUsage: "<instance> [instance...]",
+	ArgsUsage: "[instance...]",
 	Flags: []cli.Flag{
 		&cli.BoolFlag{
 			Name:    "force",
 			Aliases: []string{"f"},
 			Usage:   "Force removal of running instances",
+		},
+		&cli.BoolFlag{
+			Name:  "all",
+			Usage: "Remove all instances (stopped only, unless --force)",
 		},
 	},
 	Action:          handleRm,
@@ -26,21 +30,47 @@ var rmCmd = cli.Command{
 
 func handleRm(ctx context.Context, cmd *cli.Command) error {
 	args := cmd.Args().Slice()
-	if len(args) < 1 {
-		return fmt.Errorf("instance ID required\nUsage: hypeman rm [flags] <instance> [instance...]")
+	force := cmd.Bool("force")
+	all := cmd.Bool("all")
+
+	if !all && len(args) < 1 {
+		return fmt.Errorf("instance ID required\nUsage: hypeman rm [flags] <instance> [instance...]\n       hypeman rm --all [--force]")
 	}
 
-	force := cmd.Bool("force")
 	client := hypeman.NewClient(getDefaultRequestOptions(cmd)...)
 
-	var lastErr error
-	for _, identifier := range args {
-		// Resolve instance by ID, partial ID, or name
-		instanceID, err := ResolveInstance(ctx, &client, identifier)
+	// If --all, get all instance IDs
+	var identifiers []string
+	if all {
+		instances, err := client.Instances.List(ctx)
 		if err != nil {
-			fmt.Printf("Error: %v\n", err)
-			lastErr = err
-			continue
+			return fmt.Errorf("failed to list instances: %w", err)
+		}
+		for _, inst := range *instances {
+			identifiers = append(identifiers, inst.ID)
+		}
+		if len(identifiers) == 0 {
+			fmt.Println("No instances to remove")
+			return nil
+		}
+	} else {
+		identifiers = args
+	}
+
+	var lastErr error
+	for _, identifier := range identifiers {
+		// Resolve instance by ID, partial ID, or name (skip if --all since we have full IDs)
+		var instanceID string
+		var err error
+		if all {
+			instanceID = identifier
+		} else {
+			instanceID, err = ResolveInstance(ctx, &client, identifier)
+			if err != nil {
+				fmt.Printf("Error: %v\n", err)
+				lastErr = err
+				continue
+			}
 		}
 
 		// Check instance state if not forcing
@@ -57,6 +87,10 @@ func handleRm(ctx context.Context, cmd *cli.Command) error {
 			}
 
 			if inst.State == "Running" {
+				if all {
+					// Silently skip running instances when using --all without --force
+					continue
+				}
 				fmt.Printf("Error: cannot remove running instance %s. Stop it first or use --force\n", instanceID)
 				lastErr = fmt.Errorf("instance is running")
 				continue
