@@ -35,9 +35,13 @@ func handleLogs(ctx context.Context, cmd *cli.Command) error {
 		return fmt.Errorf("instance ID required\nUsage: hypeman logs [flags] <instance>")
 	}
 
-	instanceID := args[0]
-
 	client := hypeman.NewClient(getDefaultRequestOptions(cmd)...)
+
+	// Resolve instance by ID, partial ID, or name
+	instanceID, err := ResolveInstance(ctx, &client, args[0])
+	if err != nil {
+		return err
+	}
 
 	params := hypeman.InstanceStreamLogsParams{}
 	if cmd.IsSet("follow") {

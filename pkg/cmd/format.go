@@ -1,10 +1,13 @@
 package cmd
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"strings"
 	"time"
+
+	"github.com/onkernel/hypeman-go"
 )
 
 // TableWriter provides simple table formatting for CLI output
@@ -145,4 +148,48 @@ func randomSuffix(n int) string {
 	return string(b)
 }
 
+// ResolveInstance resolves an instance identifier to a full instance ID.
+// It supports:
+// - Full instance ID (exact match)
+// - Partial instance ID (prefix match)
+// - Instance name (exact match)
+// Returns an error if the identifier is ambiguous or not found.
+func ResolveInstance(ctx context.Context, client *hypeman.Client, identifier string) (string, error) {
+	// List all instances
+	instances, err := client.Instances.List(ctx)
+	if err != nil {
+		return "", fmt.Errorf("failed to list instances: %w", err)
+	}
+
+	var matches []hypeman.Instance
+
+	for _, inst := range *instances {
+		// Exact ID match - return immediately
+		if inst.ID == identifier {
+			return inst.ID, nil
+		}
+		// Exact name match - return immediately
+		if inst.Name == identifier {
+			return inst.ID, nil
+		}
+		// Partial ID match (prefix)
+		if strings.HasPrefix(inst.ID, identifier) {
+			matches = append(matches, inst)
+		}
+	}
+
+	switch len(matches) {
+	case 0:
+		return "", fmt.Errorf("no instance found matching %q", identifier)
+	case 1:
+		return matches[0].ID, nil
+	default:
+		// Ambiguous - show matching IDs
+		ids := make([]string, len(matches))
+		for i, m := range matches {
+			ids[i] = TruncateID(m.ID)
+		}
+		return "", fmt.Errorf("ambiguous instance identifier %q matches: %s", identifier, strings.Join(ids, ", "))
+	}
+}
 

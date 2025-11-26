@@ -14,6 +14,7 @@ import (
 	"syscall"
 
 	"github.com/gorilla/websocket"
+	"github.com/onkernel/hypeman-go"
 	"github.com/urfave/cli/v3"
 	"golang.org/x/term"
 )
@@ -75,7 +76,13 @@ func handleExec(ctx context.Context, cmd *cli.Command) error {
 		return fmt.Errorf("instance ID required\nUsage: hypeman exec [flags] <instance-id> [-- command...]")
 	}
 
-	instanceID := args[0]
+	// Resolve instance by ID, partial ID, or name
+	client := hypeman.NewClient(getDefaultRequestOptions(cmd)...)
+	instanceID, err := ResolveInstance(ctx, &client, args[0])
+	if err != nil {
+		return err
+	}
+
 	var command []string
 
 	// Parse command after -- separator or remaining args

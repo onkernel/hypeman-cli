@@ -34,7 +34,15 @@ func handleRm(ctx context.Context, cmd *cli.Command) error {
 	client := hypeman.NewClient(getDefaultRequestOptions(cmd)...)
 
 	var lastErr error
-	for _, instanceID := range args {
+	for _, identifier := range args {
+		// Resolve instance by ID, partial ID, or name
+		instanceID, err := ResolveInstance(ctx, &client, identifier)
+		if err != nil {
+			fmt.Printf("Error: %v\n", err)
+			lastErr = err
+			continue
+		}
+
 		// Check instance state if not forcing
 		if !force {
 			inst, err := client.Instances.Get(
@@ -56,7 +64,7 @@ func handleRm(ctx context.Context, cmd *cli.Command) error {
 		}
 
 		// Delete the instance
-		err := client.Instances.Delete(
+		err = client.Instances.Delete(
 			ctx,
 			instanceID,
 			option.WithMiddleware(debugMiddleware(cmd.Root().Bool("debug"))),
