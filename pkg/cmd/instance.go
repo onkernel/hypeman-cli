@@ -42,7 +42,7 @@ var instancesCreate = cli.Command{
 		&requestflag.StringFlag{
 			Name:  "hotplug-size",
 			Usage: `Additional memory for hotplug (human-readable format like "3GB", "1G")`,
-			Value: "3GB",
+			Value: requestflag.Value[string]("3GB"),
 			Config: requestflag.RequestConfig{
 				BodyPath: "hotplug_size",
 			},
@@ -57,7 +57,7 @@ var instancesCreate = cli.Command{
 		&requestflag.StringFlag{
 			Name:  "overlay-size",
 			Usage: `Writable overlay disk size (human-readable format like "10GB", "50G")`,
-			Value: "10GB",
+			Value: requestflag.Value[string]("10GB"),
 			Config: requestflag.RequestConfig{
 				BodyPath: "overlay_size",
 			},
@@ -65,7 +65,7 @@ var instancesCreate = cli.Command{
 		&requestflag.StringFlag{
 			Name:  "size",
 			Usage: `Base memory size (human-readable format like "1GB", "512MB", "2G")`,
-			Value: "1GB",
+			Value: requestflag.Value[string]("1GB"),
 			Config: requestflag.RequestConfig{
 				BodyPath: "size",
 			},
@@ -73,7 +73,7 @@ var instancesCreate = cli.Command{
 		&requestflag.IntFlag{
 			Name:  "vcpus",
 			Usage: "Number of virtual CPUs",
-			Value: 2,
+			Value: requestflag.Value[int64](2),
 			Config: requestflag.RequestConfig{
 				BodyPath: "vcpus",
 			},
@@ -139,7 +139,7 @@ var instancesLogs = cli.Command{
 		&requestflag.IntFlag{
 			Name:  "tail",
 			Usage: "Number of lines to return from end",
-			Value: 100,
+			Value: requestflag.Value[int64](100),
 			Config: requestflag.RequestConfig{
 				QueryPath: "tail",
 			},
