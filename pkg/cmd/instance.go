@@ -90,18 +90,6 @@ var instancesCreate = cli.Command{
 	HideHelpCommand: true,
 }
 
-var instancesRetrieve = cli.Command{
-	Name:  "retrieve",
-	Usage: "Get instance details",
-	Flags: []cli.Flag{
-		&requestflag.StringFlag{
-			Name: "id",
-		},
-	},
-	Action:          handleInstancesRetrieve,
-	HideHelpCommand: true,
-}
-
 var instancesList = cli.Command{
 	Name:            "list",
 	Usage:           "List instances",
@@ -119,6 +107,18 @@ var instancesDelete = cli.Command{
 		},
 	},
 	Action:          handleInstancesDelete,
+	HideHelpCommand: true,
+}
+
+var instancesGet = cli.Command{
+	Name:  "get",
+	Usage: "Get instance details",
+	Flags: []cli.Flag{
+		&requestflag.StringFlag{
+			Name: "id",
+		},
+	},
+	Action:          handleInstancesGet,
 	HideHelpCommand: true,
 }
 
@@ -149,27 +149,27 @@ var instancesLogs = cli.Command{
 	HideHelpCommand: true,
 }
 
-var instancesPutInStandby = cli.Command{
-	Name:  "put-in-standby",
-	Usage: "Put instance in standby (pause, snapshot, delete VMM)",
-	Flags: []cli.Flag{
-		&requestflag.StringFlag{
-			Name: "id",
-		},
-	},
-	Action:          handleInstancesPutInStandby,
-	HideHelpCommand: true,
-}
-
-var instancesRestoreFromStandby = cli.Command{
-	Name:  "restore-from-standby",
+var instancesRestore = cli.Command{
+	Name:  "restore",
 	Usage: "Restore instance from standby",
 	Flags: []cli.Flag{
 		&requestflag.StringFlag{
 			Name: "id",
 		},
 	},
-	Action:          handleInstancesRestoreFromStandby,
+	Action:          handleInstancesRestore,
+	HideHelpCommand: true,
+}
+
+var instancesStandby = cli.Command{
+	Name:  "standby",
+	Usage: "Put instance in standby (pause, snapshot, delete VMM)",
+	Flags: []cli.Flag{
+		&requestflag.StringFlag{
+			Name: "id",
+		},
+	},
+	Action:          handleInstancesStandby,
 	HideHelpCommand: true,
 }
 
@@ -205,42 +205,6 @@ func handleInstancesCreate(ctx context.Context, cmd *cli.Command) error {
 	format := cmd.Root().String("format")
 	transform := cmd.Root().String("transform")
 	return ShowJSON("instances create", json, format, transform)
-}
-
-func handleInstancesRetrieve(ctx context.Context, cmd *cli.Command) error {
-	client := hypeman.NewClient(getDefaultRequestOptions(cmd)...)
-	unusedArgs := cmd.Args().Slice()
-	if !cmd.IsSet("id") && len(unusedArgs) > 0 {
-		cmd.Set("id", unusedArgs[0])
-		unusedArgs = unusedArgs[1:]
-	}
-	if len(unusedArgs) > 0 {
-		return fmt.Errorf("Unexpected extra arguments: %v", unusedArgs)
-	}
-	options, err := flagOptions(
-		cmd,
-		apiquery.NestedQueryFormatBrackets,
-		apiquery.ArrayQueryFormatComma,
-		ApplicationJSON,
-	)
-	if err != nil {
-		return err
-	}
-	var res []byte
-	options = append(options, option.WithResponseBodyInto(&res))
-	_, err = client.Instances.Get(
-		ctx,
-		requestflag.CommandRequestValue[string](cmd, "id"),
-		options...,
-	)
-	if err != nil {
-		return err
-	}
-
-	json := gjson.Parse(string(res))
-	format := cmd.Root().String("format")
-	transform := cmd.Root().String("transform")
-	return ShowJSON("instances retrieve", json, format, transform)
 }
 
 func handleInstancesList(ctx context.Context, cmd *cli.Command) error {
@@ -297,6 +261,42 @@ func handleInstancesDelete(ctx context.Context, cmd *cli.Command) error {
 	)
 }
 
+func handleInstancesGet(ctx context.Context, cmd *cli.Command) error {
+	client := hypeman.NewClient(getDefaultRequestOptions(cmd)...)
+	unusedArgs := cmd.Args().Slice()
+	if !cmd.IsSet("id") && len(unusedArgs) > 0 {
+		cmd.Set("id", unusedArgs[0])
+		unusedArgs = unusedArgs[1:]
+	}
+	if len(unusedArgs) > 0 {
+		return fmt.Errorf("Unexpected extra arguments: %v", unusedArgs)
+	}
+	options, err := flagOptions(
+		cmd,
+		apiquery.NestedQueryFormatBrackets,
+		apiquery.ArrayQueryFormatComma,
+		ApplicationJSON,
+	)
+	if err != nil {
+		return err
+	}
+	var res []byte
+	options = append(options, option.WithResponseBodyInto(&res))
+	_, err = client.Instances.Get(
+		ctx,
+		requestflag.CommandRequestValue[string](cmd, "id"),
+		options...,
+	)
+	if err != nil {
+		return err
+	}
+
+	json := gjson.Parse(string(res))
+	format := cmd.Root().String("format")
+	transform := cmd.Root().String("transform")
+	return ShowJSON("instances get", json, format, transform)
+}
+
 func handleInstancesLogs(ctx context.Context, cmd *cli.Command) error {
 	client := hypeman.NewClient(getDefaultRequestOptions(cmd)...)
 	unusedArgs := cmd.Args().Slice()
@@ -330,7 +330,7 @@ func handleInstancesLogs(ctx context.Context, cmd *cli.Command) error {
 	return stream.Err()
 }
 
-func handleInstancesPutInStandby(ctx context.Context, cmd *cli.Command) error {
+func handleInstancesRestore(ctx context.Context, cmd *cli.Command) error {
 	client := hypeman.NewClient(getDefaultRequestOptions(cmd)...)
 	unusedArgs := cmd.Args().Slice()
 	if !cmd.IsSet("id") && len(unusedArgs) > 0 {
@@ -351,7 +351,7 @@ func handleInstancesPutInStandby(ctx context.Context, cmd *cli.Command) error {
 	}
 	var res []byte
 	options = append(options, option.WithResponseBodyInto(&res))
-	_, err = client.Instances.PutInStandby(
+	_, err = client.Instances.Restore(
 		ctx,
 		requestflag.CommandRequestValue[string](cmd, "id"),
 		options...,
@@ -363,10 +363,10 @@ func handleInstancesPutInStandby(ctx context.Context, cmd *cli.Command) error {
 	json := gjson.Parse(string(res))
 	format := cmd.Root().String("format")
 	transform := cmd.Root().String("transform")
-	return ShowJSON("instances put-in-standby", json, format, transform)
+	return ShowJSON("instances restore", json, format, transform)
 }
 
-func handleInstancesRestoreFromStandby(ctx context.Context, cmd *cli.Command) error {
+func handleInstancesStandby(ctx context.Context, cmd *cli.Command) error {
 	client := hypeman.NewClient(getDefaultRequestOptions(cmd)...)
 	unusedArgs := cmd.Args().Slice()
 	if !cmd.IsSet("id") && len(unusedArgs) > 0 {
@@ -387,7 +387,7 @@ func handleInstancesRestoreFromStandby(ctx context.Context, cmd *cli.Command) er
 	}
 	var res []byte
 	options = append(options, option.WithResponseBodyInto(&res))
-	_, err = client.Instances.RestoreFromStandby(
+	_, err = client.Instances.Standby(
 		ctx,
 		requestflag.CommandRequestValue[string](cmd, "id"),
 		options...,
@@ -399,5 +399,5 @@ func handleInstancesRestoreFromStandby(ctx context.Context, cmd *cli.Command) er
 	json := gjson.Parse(string(res))
 	format := cmd.Root().String("format")
 	transform := cmd.Root().String("transform")
-	return ShowJSON("instances restore-from-standby", json, format, transform)
+	return ShowJSON("instances standby", json, format, transform)
 }

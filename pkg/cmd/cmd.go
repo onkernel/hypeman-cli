@@ -79,8 +79,8 @@ func init() {
 				Category: "API RESOURCE",
 				Commands: []*cli.Command{
 					&imagesCreate,
-					&imagesRetrieve,
 					&imagesList,
+					&imagesGet,
 				},
 			},
 			{
@@ -88,10 +88,10 @@ func init() {
 				Category: "API RESOURCE",
 				Commands: []*cli.Command{
 					&instancesCreate,
-					&instancesRetrieve,
 					&instancesList,
-					&instancesPutInStandby,
-					&instancesRestoreFromStandby,
+					&instancesGet,
+					&instancesRestore,
+					&instancesStandby,
 				},
 			},
 			{
@@ -107,8 +107,17 @@ func init() {
 				Category: "API RESOURCE",
 				Commands: []*cli.Command{
 					&volumesCreate,
-					&volumesRetrieve,
 					&volumesList,
+					&volumesGet,
+				},
+			},
+			{
+				Name:     "ingresses",
+				Category: "API RESOURCE",
+				Commands: []*cli.Command{
+					&ingressesCreate,
+					&ingressesList,
+					&ingressesGet,
 				},
 			},
 			{
