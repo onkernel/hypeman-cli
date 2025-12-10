@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"os"
 	"strings"
@@ -84,29 +83,6 @@ var ingressDeleteCmd = cli.Command{
 	HideHelpCommand: true,
 }
 
-// ingressRule is a custom type to include TLS fields not yet in the SDK
-type ingressRule struct {
-	Match        ingressMatch  `json:"match"`
-	Target       ingressTarget `json:"target"`
-	TLS          bool          `json:"tls,omitempty"`
-	RedirectHTTP bool          `json:"redirect_http,omitempty"`
-}
-
-type ingressMatch struct {
-	Hostname string `json:"hostname"`
-	Port     int64  `json:"port,omitempty"`
-}
-
-type ingressTarget struct {
-	Instance string `json:"instance"`
-	Port     int64  `json:"port"`
-}
-
-type ingressCreateRequest struct {
-	Name  string        `json:"name"`
-	Rules []ingressRule `json:"rules"`
-}
-
 func handleIngressCreate(ctx context.Context, cmd *cli.Command) error {
 	args := cmd.Args().Slice()
 	if len(args) < 1 {
@@ -133,35 +109,27 @@ func handleIngressCreate(ctx context.Context, cmd *cli.Command) error {
 		opts = append(opts, debugMiddlewareOption)
 	}
 
-	// Build custom request body to include TLS fields
-	reqBody := ingressCreateRequest{
+	params := hypeman.IngressNewParams{
 		Name: name,
-		Rules: []ingressRule{
+		Rules: []hypeman.IngressRuleParam{
 			{
-				Match: ingressMatch{
+				Match: hypeman.IngressMatchParam{
 					Hostname: hostname,
-					Port:     int64(hostPort),
+					Port:     hypeman.Int(int64(hostPort)),
 				},
-				Target: ingressTarget{
+				Target: hypeman.IngressTargetParam{
 					Instance: instance,
 					Port:     int64(port),
 				},
-				TLS:          tls,
-				RedirectHTTP: redirectHTTP,
+				Tls:          hypeman.Bool(tls),
+				RedirectHTTP: hypeman.Bool(redirectHTTP),
 			},
 		},
 	}
 
-	bodyBytes, err := json.Marshal(reqBody)
-	if err != nil {
-		return fmt.Errorf("failed to marshal request: %w", err)
-	}
-
-	opts = append(opts, option.WithRequestBody("application/json", bodyBytes))
-
 	fmt.Fprintf(os.Stderr, "Creating ingress %s...\n", name)
 
-	result, err := client.Ingresses.New(ctx, hypeman.IngressNewParams{}, opts...)
+	result, err := client.Ingresses.New(ctx, params, opts...)
 	if err != nil {
 		return err
 	}
@@ -207,6 +175,11 @@ func handleIngressList(ctx context.Context, cmd *cli.Command) error {
 			rule := ing.Rules[0]
 			hostname = rule.Match.Hostname
 			target = fmt.Sprintf("%s:%d", rule.Target.Instance, rule.Target.Port)
+			if rule.Tls {
+				tlsEnabled = "yes"
+			} else {
+				tlsEnabled = "no"
+			}
 		}
 
 		table.AddRow(
@@ -249,9 +222,21 @@ func handleIngressDelete(ctx context.Context, cmd *cli.Command) error {
 
 // generateIngressName generates an ingress name from hostname
 func generateIngressName(hostname string) string {
-	// Replace dots with dashes, remove invalid chars
+	// Replace dots with dashes
 	name := strings.ReplaceAll(hostname, ".", "-")
 	name = strings.ToLower(name)
+
+	// Remove invalid characters (only allow a-z, 0-9, and -)
+	var cleaned strings.Builder
+	for _, r := range name {
+		if (r >= 'a' && r <= 'z') || (r >= '0' && r <= '9') || r == '-' {
+			cleaned.WriteRune(r)
+		}
+	}
+	name = cleaned.String()
+
+	// Trim leading/trailing dashes
+	name = strings.Trim(name, "-")
 
 	// Add random suffix
 	suffix := randomSuffix(4)
