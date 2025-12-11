@@ -162,7 +162,7 @@ func waitForImageReady(ctx context.Context, client *hypeman.Client, img *hypeman
 	}
 
 	// Poll until ready using the normalized image name from the API response
-	ticker := time.NewTicker(1 * time.Second)
+	ticker := time.NewTicker(300 * time.Millisecond)
 	defer ticker.Stop()
 
 	// Show initial status
