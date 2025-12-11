@@ -37,7 +37,7 @@ go run cmd/hypeman/main.go
 # Pull an image
 hypeman pull nginx:alpine
 
-# Boot a VM (auto-pulls image if needed)
+# Boot a new VM (auto-pulls image if needed)
 hypeman run --name my-app nginx:alpine
 
 # List running VMs
@@ -54,6 +54,16 @@ hypeman logs -f my-app
 hypeman exec my-app whoami
 # Shell into the VM
 hypeman exec -it my-app /bin/sh
+
+# VM lifecycle
+# Turn off the VM
+hypeman instances stop --id my-app
+# Boot the VM that was turned off
+hypeman instances start --id my-app
+# Put the VM to sleep (paused)
+hypeman instances standby --id my-app
+# Awaken the VM (resumed)
+hypeman instances restore --id my-app
 
 # Create a reverse proxy ("ingress") from the host to your VM
 hypeman ingress create --name my-ingress my-app --hostname my-nginx-app --port 80 --host-port 8081
