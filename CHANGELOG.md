@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.6.2 (2025-12-13)
+
+Full Changelog: [v0.6.1...v0.6.2](https://github.com/onkernel/hypeman-cli/compare/v0.6.1...v0.6.2)
+
+### Chores
+
+* **internal:** codegen related update ([87854c3](https://github.com/onkernel/hypeman-cli/commit/87854c3219f82b9c436a0014943c18a993785e55))
+
 ## 0.6.1 (2025-12-11)
 
 Full Changelog: [v0.6.0...v0.6.1](https://github.com/onkernel/hypeman-cli/compare/v0.6.0...v0.6.1)
