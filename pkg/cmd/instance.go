@@ -4,6 +4,7 @@ package cmd
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"os"
 
@@ -337,6 +338,8 @@ func handleInstancesLogs(ctx context.Context, cmd *cli.Command) error {
 		return err
 	}
 
+	format := cmd.Root().String("format")
+	transform := cmd.Root().String("transform")
 	stream := client.Instances.LogsStreaming(
 		ctx,
 		cmd.Value("id").(string),
@@ -344,7 +347,13 @@ func handleInstancesLogs(ctx context.Context, cmd *cli.Command) error {
 		options...,
 	)
 	for stream.Next() {
-		fmt.Printf("%s\n", stream.Current().RawJSON())
+		response := stream.Current()
+		jsonData, err := json.Marshal(response)
+		if err != nil {
+			return err
+		}
+		obj := gjson.ParseBytes(jsonData)
+		ShowJSON(os.Stdout, "instances logs", obj, format, transform)
 	}
 	return stream.Err()
 }
