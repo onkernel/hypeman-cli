@@ -94,6 +94,7 @@ func init() {
 					&instancesRestore,
 					&instancesStandby,
 					&instancesStart,
+					&instancesStat,
 					&instancesStop,
 				},
 			},
