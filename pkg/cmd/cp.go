@@ -650,11 +650,13 @@ func copyFromInstance(ctx context.Context, client *hypeman.Client, baseURL, apiK
 			return fmt.Errorf("cannot copy a directory to a file")
 		}
 		if !dstExists {
-			// Create destination directory
+			// Create destination directory - will be created by SDK
 		} else if !copyContentsOnly {
-			// Copy SRC dir into DST - the relative path from guest will be joined
-			// The guest sends paths relative to srcPath basename, so we keep dstPath as-is
+			// Copy SRC dir into DST - create source directory inside destination
+			// Use path.Base for guest srcPath (always forward slashes)
+			resolvedDst = filepath.Join(dstPath, path.Base(srcPath))
 		}
+		// else: copyContentsOnly=true - contents go directly into dstPath
 	}
 	dstPath = resolvedDst
 
