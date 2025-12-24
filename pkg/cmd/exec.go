@@ -35,7 +35,7 @@ type execRequest struct {
 	Env          map[string]string `json:"env,omitempty"`
 	Cwd          string            `json:"cwd,omitempty"`
 	Timeout      int32             `json:"timeout,omitempty"`
-	WaitForAgent int32             `json:"wait_for_agent,omitempty"`
+	WaitForAgent int32             `json:"wait_for_agent"`
 }
 
 var execCmd = cli.Command{
