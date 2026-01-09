@@ -1,5 +1,24 @@
 # Changelog
 
+## 0.8.0 (2025-12-23)
+
+Full Changelog: [v0.7.0...v0.8.0](https://github.com/onkernel/hypeman-cli/compare/v0.7.0...v0.8.0)
+
+### Features
+
+* Start and Stop VM ([fb7c6f8](https://github.com/onkernel/hypeman-cli/commit/fb7c6f804b899409310ae310cb7bb0cc888b5c49))
+
+
+### Bug Fixes
+
+* **mcp:** correct code tool API endpoint ([7c0094d](https://github.com/onkernel/hypeman-cli/commit/7c0094d0b5ea9e3b6b116d8aa2de5fa9d01a069f))
+
+
+### Chores
+
+* **internal:** codegen related update ([32b38c7](https://github.com/onkernel/hypeman-cli/commit/32b38c75d9fc8e62a1163680d36e1cc4d9da7a49))
+* **internal:** codegen related update ([51bb415](https://github.com/onkernel/hypeman-cli/commit/51bb415b4d8365514963a436339f4aaf8334beff))
+
 ## 0.7.0 (2025-12-23)
 
 Full Changelog: [v0.6.1...v0.7.0](https://github.com/onkernel/hypeman-cli/compare/v0.6.1...v0.7.0)
