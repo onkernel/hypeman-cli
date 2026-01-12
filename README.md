@@ -9,7 +9,7 @@ It is generated with [Stainless](https://www.stainless.com/).
 ### Installing with Homebrew
 
 ```sh
-brew tap onkernel/tap
+brew tap kernel/tap
 brew install hypeman
 ```
 
