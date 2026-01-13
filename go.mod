@@ -10,7 +10,7 @@ require (
 	github.com/goccy/go-yaml v1.18.0
 	github.com/itchyny/json2yaml v0.1.4
 	github.com/muesli/reflow v0.3.0
-	github.com/onkernel/hypeman-go v0.8.0
+	github.com/onkernel/hypeman-go v0.0.0
 	github.com/stretchr/testify v1.11.1
 	github.com/tidwall/gjson v1.18.0
 	github.com/tidwall/pretty v1.2.1
@@ -45,3 +45,5 @@ require (
 	golang.org/x/text v0.3.8 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
+
+replace github.com/onkernel/hypeman-go => github.com/stainless-sdks/hypeman-go v0.0.0-20251223192437-9689c5062036
